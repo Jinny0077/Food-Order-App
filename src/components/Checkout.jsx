@@ -22,6 +22,7 @@ export default function Checkout() {
     isLoading: isSending,
     error,
     sendRequest,
+    clearData,
   } = useHttp("http://localhost:4000/orders", requestConfig);
 
   const cartTotal = cartCtx.items.reduce(
@@ -33,17 +34,23 @@ export default function Checkout() {
     userProgressCtx.hideCheckout();
   }
 
-  async function handleSubmit(e) {
+  function handleFinish() {
+    userProgressCtx.hideCheckout();
+    cartCtx.clearCart();
+    clearData();
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
 
     const fd = new FormData(e.target);
     const customerData = Object.fromEntries(fd.entries());
 
-    await sendRequest({
-      body: JSON.stringify({
+    sendRequest(
+      JSON.stringify({
         order: { items: cartCtx.items, customer: customerData },
-      }),
-    });
+      })
+    );
   }
 
   let actions = (
@@ -63,7 +70,7 @@ export default function Checkout() {
     return (
       <Modal
         open={userProgressCtx.progress === "checkout"}
-        onClose={handleClose}
+        onClose={handleFinish}
       >
         <h2>Success!</h2>
         <p>Your order was submitted successfully.</p>
@@ -72,7 +79,7 @@ export default function Checkout() {
           few minutes.
         </p>
         <p className="modal-actions">
-          <Button onClick={handleClose}>Okay</Button>
+          <Button onClick={handleFinish}>Okay</Button>
         </p>
       </Modal>
     );
